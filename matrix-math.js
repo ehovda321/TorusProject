@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint no-unused-vars: ["warn", {"varsIgnorePattern": "(Matrix)|(Vector)|(Camera)"}] */
 
 /**
@@ -44,7 +45,38 @@ class Matrix {
      *
      */
     constructor(values) {
-        // TODO
+        // identity matrix
+        this.idMatrix = [
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        ];
+
+        // main metrix - idMatrix is default
+        this.matrix = this.idMatrix.slice(0);
+
+        // Validation check to see if values actually have a value
+        if (typeof values !== "undefined") {
+            // Create matrix based off of given values
+            let newMatrix = values;
+
+            if (newMatrix.length < 16) {
+                let tempMat = this.idMatrix.slice(0);
+                for (let i = 0; i < newMatrix.length; i++) {
+                    tempMat.shift();
+                }
+                newMatrix = newMatrix.concat(tempMat);
+            }
+
+            // Transpose the matrix to make it column major order
+            for (let c = 0; c < 4; c++) {
+                for (let r = 0; r < 4; r++) {
+                    let p = r * 4 + c;
+                    this.setValue(r, c, newMatrix[p]);
+                }
+            }
+        }
     }
 
     /**
@@ -54,7 +86,7 @@ class Matrix {
      * @return {Float32Array} Array with the matrix data.
      */
     getData() {
-        // TODO
+        return new Float32Array(this.matrix);
     }
 
     /**
@@ -65,7 +97,8 @@ class Matrix {
      * @return {number} Value in the array at (r, c)
      */
     getValue(r, c) {
-        // TODO
+        // column major order search to get a value at a specific spot
+        return this.matrix[c * 4 + r];
     }
 
     /**
@@ -76,7 +109,8 @@ class Matrix {
      * @param {number} value Value to place in the matrix.
      */
     setValue(r, c, value) {
-        // TODO
+        // column major order search to update the matrix with a value at a specific spot
+        this.matrix[c * 4 + r] = value;
     }
 
     /**
@@ -86,7 +120,8 @@ class Matrix {
      * @return {Matrix} Identity matrix
      */
     identity() {
-        // TODO
+        let newMatrix = new Matrix(this.idMatrix);
+        return newMatrix;
     }
 
     /**
@@ -98,7 +133,20 @@ class Matrix {
      * @return {Matrix} Product of the current matrix and the parameter.
      */
     mult(matB) {
-        // TODO
+        let matrixValues = []; // new matrix
+
+        for (let r = 0; r < 4; r++) {
+            for (let c = 0; c < 4; c++) {
+                let n = 0;
+
+                for (let i = 0; i < 4; i++) {
+                    n += this.getValue(r, i) * matB.getValue(i, c);
+                }
+                matrixValues.push(n);
+            }
+        }
+
+        return new Matrix(matrixValues);
     }
 
     /**
@@ -114,7 +162,14 @@ class Matrix {
      * @return {Matrix} Result of translating the current matrix.
      */
     translate(x, y, z) {
-        // TODO
+        let matrix = new Matrix([
+            1, 0, 0, x,
+            0, 1, 0, y,
+            0, 0, 1, z,
+            0, 0, 0, 1
+        ]);
+
+        return this.mult(matrix);
     }
 
     /**
@@ -131,7 +186,17 @@ class Matrix {
      * @return {Matrix} Result of rotating the current matrix.
      */
     rotateX(theta, x = 0, y = 0, z = 0) {
-        // TODO
+        let cos = Math.cos(theta * (Math.PI / 180));
+        let sin = Math.sin(theta * (Math.PI / 180));
+
+        let matrix = new Matrix([
+            1, 0, 0, 0,
+            0, cos, -sin, 0,
+            0, sin, cos, 0,
+            0, 0, 0, 1
+        ]);
+
+        return this.mult(matrix);
     }
 
     /**
@@ -148,7 +213,17 @@ class Matrix {
      * @return {Matrix} Result of rotating the current matrix.
      */
     rotateY(theta, x = 0, y = 0, z = 0) {
-        // TODO
+        let cos = Math.cos(theta * (Math.PI / 180));
+        let sin = Math.sin(theta * (Math.PI / 180));
+
+        let matrix = new Matrix([
+            cos, 0, sin, 0,
+            0, 1, 0, 0,
+            -sin, 0, cos, 0,
+            0, 0, 0, 1
+        ]);
+
+        return this.mult(matrix);
     }
 
     /**
@@ -165,7 +240,17 @@ class Matrix {
      * @return {Matrix} Result of rotating the current matrix.
      */
     rotateZ(theta, x = 0, y = 0, z = 0) {
-        // TODO
+        let cos = Math.cos(theta * (Math.PI / 180));
+        let sin = Math.sin(theta * (Math.PI / 180));
+
+        let matrix = new Matrix([
+            cos, -sin, 0, 0,
+            sin, cos, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        ]);
+
+        return this.mult(matrix);
     }
 
     /**
@@ -187,7 +272,7 @@ class Matrix {
      * @return {Matrix} Result of rotating the current matrix.
      */
     rotate(thetax, thetay, thetaz, x = 0, y = 0, z = 0) {
-        // TODO
+        return this.rotateX(thetax, x, y, z).rotateY(thetay, x, y, z).rotateZ(thetaz, x, y, z);
     }
 
     /**
@@ -206,7 +291,14 @@ class Matrix {
      * @return {Matrix} Result of scaling the current matrix.
      */
     scale(sx, sy, sz, x = 0, y = 0, z = 0) {
-        // TODO
+        let matrix = [
+            sx, 0, 0, 0,
+            0, sy, 0, 0,
+            0, 0, sz, 0,
+            0, 0, 0, 1
+        ];
+        let newMatrix = new Matrix(matrix);
+        return this.mult(newMatrix);
     }
 
     /**
@@ -253,7 +345,14 @@ class Vector {
      *
      */
     constructor(values) {
-        // TODO
+        this.vector = new Float32Array([0, 0, 0, 0]);
+
+        // Validation check to see if values actually have a value
+        if (typeof values !== "undefined") {
+            for (let i = 0; i < values.length && i < 3; i++) {
+                this.vector[i] = values[i];
+            }
+        }
     }
 
     /**
@@ -266,7 +365,19 @@ class Vector {
      * @return {Vector} The cross product of the current vector and the parameter.
      */
     crossProduct(v) {
-        // TODO
+        // a is vector of 3 values
+        let vecA = this.vector;
+        // vector sent into function
+        let vecB = v.getData();
+
+        // cross product calcuation / multiplication
+        let crossVec = new Vector([
+            vecA[1] * vecB[2] - vecA[2] * vecB[1],
+            vecA[2] * vecB[0] - vecA[0] * vecB[2],
+            vecA[0] * vecB[1] - vecA[1] * vecB[0]
+        ]);
+
+        return crossVec;
     }
 
     /**
@@ -279,7 +390,19 @@ class Vector {
      * @return {number} The dot product of the current vector and the parameter.
      */
     dotProduct(v) {
-        // TODO
+        // a is vector of 3 values
+        let vecA = this.vector;
+        // vector sent into function
+        let vecB = v.getData();
+        // dot Product initialized to zero
+        let dotProd = 0;
+
+        // add the product of both vectors at position x, y, z to the dotProduct (for final result calculation)
+        for (let x = 0; x < 3; x++) {
+            dotProd += vecA[x] * vecB[x];
+        }
+
+        return dotProd;
     }
 
     /**
@@ -292,7 +415,18 @@ class Vector {
      * @return {Vector} The sum of the current vector and the parameter.
      */
     add(v) {
-        // TODO
+        // a is vector of 3 values
+        let vecA = this.vector;
+        // vector sent into function
+        let vecB = v.getData();
+        // dot Product initialized to zero
+        let vecSum = new Vector([]);
+
+        for (let x = 0; x < 3; x++) {
+            vecSum.vector[x] = vecA[x] + vecB[x];
+        }
+
+        return vecSum;
     }
 
     /**
@@ -305,7 +439,18 @@ class Vector {
      * @return {Vector} The difference of the current vector and the parameter.
      */
     subtract(v) {
-        // TODO
+        // a is vector of 3 values
+        let vecA = this.vector;
+        // vector sent into function
+        let vecB = v.getData();
+        // dot Product initialized to zero
+        let vecSum = new Vector([]);
+
+        for (let x = 0; x < 3; x++) {
+            vecSum.vector[x] = vecA[x] - vecB[x];
+        }
+
+        return vecSum;
     }
 
     /**
@@ -319,7 +464,15 @@ class Vector {
      * direction as the current vector.
      */
     normalize() {
-        // TODO
+        // get magnitude from length function
+        let magnitude = this.length();
+
+        if (magnitude !== 0) {
+            // divide vector by magnitude
+            return this.scale(1 / magnitude);
+        } else {
+            return new Vector([]);
+        }
     }
 
     /**
@@ -328,7 +481,9 @@ class Vector {
      * @return {number} The length of the current vector.
      */
     length() {
-        // TODO
+        let magnitude = Math.sqrt(Math.pow(this.vector[0], 2) + Math.pow(this.vector[1], 2) + Math.pow(this.vector[2], 2));
+
+        return magnitude;
     }
 
     /**
@@ -343,7 +498,14 @@ class Vector {
      * of the current vector scaled by the parameter.
      */
     scale(s) {
-        // TODO
+        let newVector = new Vector([]);
+
+        // multiplies each member of the vector by a scaler
+        for (let x = 0; x < this.vector.length; x++) {
+            newVector.vector[x] = this.vector[x] * s;
+        }
+
+        return newVector;
     }
 
     /**
@@ -352,7 +514,7 @@ class Vector {
      * @return {number} The x value of the vector.
      */
     getX() {
-        // TODO
+        return this.vector[0];
     }
 
     /**
@@ -361,7 +523,7 @@ class Vector {
      * @return {number} The y value of the vector.
      */
     getY() {
-        // TODO
+        return this.vector[1];
     }
 
     /**
@@ -370,7 +532,7 @@ class Vector {
      * @return {number} The z value of the vector.
      */
     getZ() {
-        // TODO
+        return this.vector[2];
     }
 
     /**
@@ -383,15 +545,153 @@ class Vector {
      * @return {Float32Array} The vector as a 4 element array.
      */
     getData() {
-        // TODO
+        let returnVec = this.vector.slice(0);
+        return new Float32Array(returnVec);
     }
 }
 
-// TODO for P2 Add the Camera class
+// // add Documentation for Camera
+class Camera {
+
+
+    constructor() {
+        //  projection and camera Matrix variables should initially be the identity matrix.
+
+        this.projection = new Matrix([]);
+        this.camera = new Matrix([]);
+    }
+
+    /**
+     * @return the current camera view matrix
+     */
+    getView() {
+        return this.camera;
+    }
+
+    /**
+     * @return the current camera projection matrix
+     */
+    getProjection() {
+        return this.projection;
+    }
+
+    /**
+     * Create a perspective matrix using this information and store it in your class variable. Use
+     * your resources to determine what the matrix should be
+     * @param {number} left
+     * @param {number} right
+     * @param {number} bottom
+     * @param {number} top
+     * @param {number} near
+     * @param {number} far
+     */
+    ortho(left, right, bottom, top, near, far) {
+        this.projection = new Matrix([
+            2 / (right - left), 0, 0, -((left + right) / (right - left)),
+            0, 2 / (top - bottom), 0, -((top + bottom) / (top - bottom)),
+            0, 0, -(2 / (far - near)), -((far + near) / (far - near)),
+            0, 0, 0, 1
+        ]);
+
+        // return the Matrix
+        return this.projection;
+    }
+
+    /**
+     * Create a perspective matrix using this information and store it in your class variable. Use
+     * your resources to determine what the matrix should be
+     * @param {number} left
+     * @param {number} right
+     * @param {number} bottom
+     * @param {number} top
+     * @param {number} near
+     * @param {number} far
+     */
+    frustum(left, right, bottom, top, near, far) {
+        this.projection = new Matrix([
+            2 * near / (right - left), 0, (right + left) / (right - left), 0,
+            0, 2 * near / (top - bottom), (top + bottom) / (top - bottom), 0,
+            0, 0, -((far + near) / (far - near)), -2 * far * near / (far - near),
+            0, 0, -1, 0
+        ]);
+
+
+        // return the matrix
+        return this.projection;
+    }
+
+    /**
+     * Calculate the view matrix from this information and store it in your class variable.
+     * @return the camera view matrix.
+     * @param {Vector} eyeLocation
+     * @param {Vector} location
+     * @param {Vector} upVec
+     */
+    lookAt(eyeLocation, location, upVec) {
+        // subtracting the at vector from the eye vector
+        let n = new Vector([
+            eyeLocation.getX() - location.getX(),
+            eyeLocation.getY() - location.getY(),
+            eyeLocation.getZ() - location.getZ()
+        ]);
+
+        // use Subtract within the Vector class
+
+        n = n.normalize();
+        let u = upVec.crossProduct(n);
+        u = u.normalize();
+        let v = n.crossProduct(u);
+        v = v.normalize();
+
+        this.camera = new Matrix([
+            u.getX(), u.getY(), u.getZ(), 0,
+            v.getX(), v.getY(), v.getZ(), 0,
+            n.getX(), n.getY(), n.getZ(), 0,
+            0, 0, 0, 1
+        ]);
+
+        this.camera = this.camera.translate(-eyeLocation.getX(), -eyeLocation.getY(), -eyeLocation.getZ());
+
+        return this.camera;
+    }
+
+    /**
+     * Calculate the view matrix from this information and store it in your class variable.
+     * @return the camera view matrix.
+     * @param {Vector} camLocation
+     * @param {Vector} viewNormal
+     * @param {Vector} upVec
+     */
+    viewPoint(camLocation, viewNormal, upVec) {
+        viewNormal = viewNormal.normalize();
+        let upVecDot = upVec.dotProduct(viewNormal);
+
+        let v = new Vector([
+            upVec.getX() - upVecDot * viewNormal.getX(),
+            upVec.getY() - upVecDot * viewNormal.getY(),
+            upVec.getZ() - upVecDot * viewNormal.getZ()
+        ]);
+
+        v = v.normalize();
+        let u = v.crossProduct(viewNormal);
+        u = u.normalize();
+
+        this.camera = new Matrix([
+            u.getX(), u.getY(), u.getZ(), 0,
+            v.getX(), v.getY(), v.getZ(), 0,
+            viewNormal.getX(), viewNormal.getY(), viewNormal.getZ(), 0,
+            0, 0, 0, 1
+        ]);
+
+        this.camera = this.camera.translate(-camLocation.getX(), -camLocation.getY(), -camLocation.getZ());
+
+        return this.camera;
+    }
+}
 
 // allows the class to be send during testing
 module.exports = {
-    // Camera: Camera,  // TODO for P2 uncomment this line
+    Camera: Camera,
     Matrix: Matrix,
     Vector: Vector
 };
