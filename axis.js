@@ -11,6 +11,7 @@ const axisVertex = `
     void main() {
        gl_Position = projection * axisLocation;
     }
+
 `;
 
 /**
